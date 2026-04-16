@@ -25,7 +25,7 @@ These options are required for Sheriff to function properly. You need to underst
 ### `modules` {#modules}
 
 - **Type**: `ModuleConfig`
-- **Description**: Defines the modules and assigns tags. This is the primary way to structure your project. If you don't define modules, you must enable `autoTagging` for Sheriff to work. See [Module Boundaries](./module_boundaries.md) for detailed examples.
+- **Description**: Defines the modules and assigns tags. This is the primary way to structure your project. Module path keys support exact paths, [placeholders](./dependency-rules.md#placeholders) (`<name>`), and [wildcards](./dependency-rules.md#wildcards-in-module-paths) (`*`). If you don't define modules, you must enable `autoTagging` for Sheriff to work. See [Module Boundaries](./module_boundaries.md) for detailed examples.
 
 ### `depRules` {#deprules}
 

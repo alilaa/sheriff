@@ -363,6 +363,46 @@ export const sheriffConfig: SheriffConfig = {
 };
 ```
 
+## Wildcards in Module Paths
+
+The `*` wildcard can be used in module path keys to match any directory name at that position. This is useful when you want to assign the same tags to all modules under a certain path without listing each one explicitly.
+
+```typescript
+import { SheriffConfig } from '@softarc/sheriff-core';
+
+export const sheriffConfig: SheriffConfig = {
+  modules: {
+    'src/app/shared/*': 'shared',
+    'src/app/<domain>/<type>': ['domain:<domain>', 'type:<type>'],
+  },
+  depRules: {
+    'domain:*': ({ from, to }) => from === to,
+    'type:feature': 'type:data',
+    shared: ['shared'],
+    root: ['type:feature', 'shared'],
+  },
+};
+```
+
+In this example, every module directly under `src/app/shared/` (e.g., `src/app/shared/util`, `src/app/shared/ui`) gets the tag `shared`.
+
+Partial wildcards are also supported. For example, `feat-*` matches `feat-booking`, `feat-holidays`, etc.
+
+The `*` wildcard can be combined with nested paths:
+
+```typescript
+modules: {
+  'src/app': {
+    'shared/*': 'shared',
+    '<domain>/<type>': ['domain:<domain>', 'type:<type>'],
+  },
+},
+```
+
+:::note
+The `*` wildcard matches a single path segment. It does not match across directory boundaries (`/`). Use [placeholders](#placeholders) if you need to capture the matched value for use in tag names.
+:::
+
 ## `depRules` Functions & Wildcards
 
 `depRules` allows functions instead of static values. The names of the tags can include wildcards:
