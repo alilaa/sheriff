@@ -601,4 +601,57 @@ describe('check for dependency rule violation', () => {
       expect(violations[0]).toMatchObject({fromTag: 'root', toTags: ['domain:customers', 'type:feature']});
     });
   });
+
+  describe('wildcard module paths', () => {
+    it('should assign tags via wildcard * in module config', () => {
+      const projectInfo = testInit('src/app.component.ts', {
+        'tsconfig.json': tsConfig(),
+        'sheriff.config.ts': sheriffConfig({
+          modules: {
+            'src/shared/*': 'shared',
+            'src/<domain>/<type>': ['domain:<domain>', 'type:<type>'],
+          },
+          depRules: {
+            root: ['type:feature'],
+            'domain:*': sameTag,
+            'type:feature': ['type:data', 'shared'],
+            'type:data': noDependencies,
+            shared: noDependencies,
+          },
+        }),
+        src: {
+          'app.component.ts': ['./customers/feature'],
+          customers: {
+            feature: {
+              'index.ts': ['../../shared/util', '../data'],
+            },
+            data: {
+              'index.ts': ['../../shared/util'],
+            },
+          },
+          shared: {
+            util: {
+              'index.ts': [],
+            },
+          },
+        },
+      });
+
+      const featureViolations = checkForDependencyRuleViolation(
+        toFsPath('/project/src/customers/feature/index.ts'),
+        projectInfo,
+      );
+      expect(featureViolations).toEqual([]);
+
+      const dataViolations = checkForDependencyRuleViolation(
+        toFsPath('/project/src/customers/data/index.ts'),
+        projectInfo,
+      );
+      expect(dataViolations).toHaveLength(1);
+      expect(dataViolations[0]).toMatchObject({
+        fromTag: 'type:data',
+        toTags: ['shared'],
+      });
+    });
+  });
 });

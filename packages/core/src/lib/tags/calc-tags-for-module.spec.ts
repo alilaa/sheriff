@@ -438,4 +438,108 @@ describe('calc tags for module', () => {
       }),
     ).toEqual(['domain:holidays', 'type:data']);
   });
+
+  it('should support wildcard * matching any single segment', () => {
+    const rootDir = '/project' as FsPath;
+    const moduleDir = '/project/holidays' as FsPath;
+
+    expect(
+      calcTagsForModule(moduleDir, rootDir, {
+        '*': 'shared',
+      }),
+    ).toEqual(['shared']);
+  });
+
+  it('should support wildcard * in a multi-segment path', () => {
+    const rootDir = '/project' as FsPath;
+    const moduleDir = '/project/src/app/utils' as FsPath;
+
+    expect(
+      calcTagsForModule(moduleDir, rootDir, {
+        'src/app/*': 'shared',
+      }),
+    ).toEqual(['shared']);
+  });
+
+  it('should support partial wildcard like feat-*', () => {
+    const rootDir = '/project' as FsPath;
+    const moduleDir = '/project/feat-booking' as FsPath;
+
+    expect(
+      calcTagsForModule(moduleDir, rootDir, {
+        'feat-*': 'feature',
+      }),
+    ).toEqual(['feature']);
+  });
+
+  it('should not match partial wildcard against wrong prefix', () => {
+    const rootDir = '/project' as FsPath;
+    const moduleDir = '/project/lib-booking' as FsPath;
+
+    expect(
+      calcTagsForModule(moduleDir, rootDir, {
+        'feat-*': 'feature',
+      }),
+    ).toEqual(['noTag']);
+  });
+
+  it('should support wildcard * in nested config', () => {
+    const rootDir = '/project' as FsPath;
+    const moduleDir = '/project/src/app/shared/utils' as FsPath;
+
+    expect(
+      calcTagsForModule(moduleDir, rootDir, {
+        'src/app': {
+          'shared/*': 'shared',
+          '<domain>/<type>': [],
+        },
+      }),
+    ).toEqual(['shared']);
+  });
+
+  it('should support wildcard with a function tag value', () => {
+    const rootDir = '/project' as FsPath;
+    const moduleDir = '/project/utils' as FsPath;
+
+    expect(
+      calcTagsForModule(moduleDir, rootDir, {
+        '*': (_, { segment }) => `module:${segment}`,
+      }),
+    ).toEqual(['module:utils']);
+  });
+
+  it('should prefer exact match over wildcard when exact comes first', () => {
+    const rootDir = '/project' as FsPath;
+    const moduleDir = '/project/holidays' as FsPath;
+
+    expect(
+      calcTagsForModule(moduleDir, rootDir, {
+        holidays: 'exact',
+        '*': 'wildcard',
+      }),
+    ).toEqual(['exact']);
+  });
+
+  it('should pick wildcard first if it appears before exact match', () => {
+    const rootDir = '/project' as FsPath;
+    const moduleDir = '/project/holidays' as FsPath;
+
+    expect(
+      calcTagsForModule(moduleDir, rootDir, {
+        '*': 'wildcard',
+        holidays: 'exact',
+      }),
+    ).toEqual(['wildcard']);
+  });
+
+  it('should support multiple wildcards in a single path', () => {
+    const rootDir = '/project' as FsPath;
+    const moduleDir = '/project/shared/utils' as FsPath;
+
+    expect(
+      calcTagsForModule(moduleDir, rootDir, {
+        '*/*': 'nested',
+      }),
+    ).toEqual(['nested']);
+  });
 });
