@@ -11,6 +11,7 @@ import {
   NoAssignedTagError,
   TagWithoutValueError,
 } from '../error/user-error';
+import { wildcardToRegex } from '../util/wildcard-to-regex';
 
 export const FOLDER_CHARACTERS_REGEX_STRING = '[a-zA-Z-_]';
 export const PLACE_HOLDER_REGEX = /<[a-zA-Z-_]+>/g;
@@ -237,7 +238,11 @@ function matchSegment(
       );
     } else {
       if (segmentMatcher !== pathFragment) {
-        matches = false;
+        if (segmentMatcher.includes('*')) {
+          matches = wildcardToRegex(segmentMatcher).test(pathFragment);
+        } else {
+          matches = false;
+        }
       }
     }
   }
@@ -248,3 +253,4 @@ function matchSegment(
     matcherContext,
   };
 }
+
